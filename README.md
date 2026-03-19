@@ -111,14 +111,13 @@ npm run lint      # TypeScript 类型检查
 
 ### 后端（Go + Gin + GORM）
 
-- 用户认证：对接 [Moledao Servers](https://github.com/moledao-io/servers) 的 JWT 认证体系，共享 Token 验证
+- 用户认证：对接 [Moledao Servers] 的 JWT 认证体系，共享 Token 验证
 - 任务 CRUD、公会管理、XP 积分、排行榜等 API
 - 数据库设计与用户数据同步
 
 ### 智能合约
 
 - ERC-721 Cuber NFT：任务完成后 Mint 成就 NFT
-- ERC-20 XP Token：链上积分奖励（可选）
 
 ## License
 
