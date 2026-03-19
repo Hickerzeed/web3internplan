@@ -21,6 +21,8 @@ import { Rewards } from './pages/Rewards';
 import { RightPanel } from './components/RightPanel';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { GuildData, Task } from './types';
+import SignupFormDemo from './components/ui/signup-form-demo';
+import { X } from 'lucide-react';
 
 export default function App() {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -30,6 +32,8 @@ export default function App() {
   const [selectedCollectionTitle, setSelectedCollectionTitle] = useState<string>('');
   const [selectedQuest, setSelectedQuest] = useState<any>(null);
   const [personalName, setPersonalName] = useState<string>('0xA199...a1bD');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [socialVisibility, setSocialVisibility] = useState<Record<string, boolean>>({
     twitter: true,
     discord: false,
@@ -146,6 +150,8 @@ export default function App() {
             isDark={isDark}
             setIsDark={setIsDark}
             setActivePage={setActivePage}
+            isLoggedIn={isLoggedIn}
+            onLoginClick={() => setShowLoginModal(true)}
           />
           <div className="flex-1 flex overflow-hidden relative z-10">
             <main id="main-scroll-container" className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-hide relative" onScroll={handleScroll}>
@@ -165,10 +171,25 @@ export default function App() {
                 {activePage === 'admin' && <AdminDashboard setActivePage={setActivePage} />}
               </div>
             </main>
-            {isRightPanelOpen && <RightPanel />}
+            {isRightPanelOpen && <RightPanel isLoggedIn={isLoggedIn} />}
           </div>
         </div>
       </div>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="relative w-full max-w-md">
+            <button 
+              onClick={() => setShowLoginModal(false)}
+              className="absolute -top-10 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <SignupFormDemo />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,7 +12,11 @@ const calendarDays = Array.from({ length: 35 }).map((_, i) => {
   return { date, isCheckedIn, isToday };
 });
 
-export function RightPanel() {
+interface RightPanelProps {
+  isLoggedIn?: boolean;
+}
+
+export function RightPanel({ isLoggedIn = false }: RightPanelProps) {
   const [isGmLoading, setIsGmLoading] = useState(false);
   const [hasGmClicked, setHasGmClicked] = useState(false);
 
@@ -82,31 +86,41 @@ export function RightPanel() {
 
         {/* Streaks */}
         <section className="py-5 border-y border-gray-200 dark:border-white/10">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="text-xs text-gray-500 font-medium mb-1">GM Streak</div>
-              <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Flame className="w-6 h-6 text-[#f5583d] dark:text-orange-500 fill-[#f5583d] dark:fill-orange-500" /> 1
+          {isLoggedIn ? (
+            <>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <div className="text-xs text-gray-500 font-medium mb-1">GM Streak</div>
+                  <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
+                    <Flame className="w-6 h-6 text-[#f5583d] dark:text-orange-500 fill-[#f5583d] dark:fill-orange-500" /> 1
+                  </div>
+                </div>
+                <div className="w-px bg-gray-200 dark:bg-white/10" />
+                <div className="flex-1">
+                  <div className="text-xs text-gray-500 font-medium mb-1">Cuber Balance</div>
+                  <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
+                    <CuberIcon size="xl" /> 0
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="w-px bg-gray-200 dark:bg-white/10" />
-            <div className="flex-1">
-              <div className="text-xs text-gray-500 font-medium mb-1">Cuber Balance</div>
-              <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <CuberIcon size="xl" /> 0
-              </div>
-            </div>
-          </div>
-          {!hasGmClicked ? (
-            <button 
-              onClick={handleGmClick}
-              disabled={isGmLoading}
-              className={`w-full mt-4 bg-gradient-to-r from-orange-400 to-yellow-400 hover:from-orange-500 hover:to-yellow-500 text-white font-bold py-3 rounded-2xl transition-all duration-300 shadow-lg shadow-orange-500/20 flex items-center justify-center ${isGmLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-            >
-              {isGmLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'GM'}
-            </button>
+              {!hasGmClicked ? (
+                <button 
+                  onClick={handleGmClick}
+                  disabled={isGmLoading}
+                  className={`w-full mt-4 bg-gradient-to-r from-orange-400 to-yellow-400 hover:from-orange-500 hover:to-yellow-500 text-white font-bold py-3 rounded-2xl transition-all duration-300 shadow-lg shadow-orange-500/20 flex items-center justify-center ${isGmLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  {isGmLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'GM'}
+                </button>
+              ) : (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">Your streak will break if you don't gm tomorrow.</p>
+              )}
+            </>
           ) : (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">Your streak will break if you don't gm tomorrow.</p>
+            <div className="py-2 text-center">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
+                Come back every day for more opportunities to level up.
+              </p>
+            </div>
           )}
         </section>
 
