@@ -119,6 +119,58 @@ npm run lint      # TypeScript 类型检查
 
 - ERC-721 Cuber NFT：任务完成后 Mint 成就 NFT
 
+## 合约开发
+
+仓库现在已经补了独立的 `contracts/` 子工程，用于实现任务完成后的成就 NFT。
+
+- 主合约：`contracts/src/CuberAchievementNFT.sol`
+- 测试：`contracts/test/CuberAchievementNFT.t.sol`
+- 配置：`contracts/foundry.toml`
+
+设计重点：
+
+- 使用 `ERC-721` 记录学生完成任务后的链上成就
+- 采用 EIP-712 签名授权领取，避免开放式公开 mint
+- 同一用户对同一任务只能 mint 一次
+- 审核与 proof 校验保留在链下，链上只负责发放
+
+初始化依赖示例：
+
+```bash
+cd contracts
+forge install OpenZeppelin/openzeppelin-contracts
+forge install foundry-rs/forge-std
+forge test
+```
+
+仓库还包含：
+
+- Foundry 部署脚本：`contracts/script/DeployCuberAchievementNFT.s.sol`
+- 后端签名参考：`contracts/examples/sign-mint-request.ts`
+- 本地签名 API：`server/mint-signature-api.ts`
+
+更详细的接口、部署方式和签名流程说明见 `contracts/README.md`。
+
+### 本地启动签名服务
+
+前端真实调用 `mintWithSignature` 时，需要后端先返回 `request + signature`。仓库里已经提供了一个最小可跑的本地签名服务：
+
+```bash
+npm run dev:signer
+```
+
+对应环境变量见 `.env.example`，默认接口地址为：
+
+```txt
+http://localhost:8080/api/contracts/cuber-achievement/mint-request
+```
+
+默认监听 `127.0.0.1:8080`，可通过 `MINT_SIGNATURE_API_HOST` 和 `MINT_SIGNATURE_API_PORT` 调整。
+
+这个服务和前端当前默认按 `Arbitrum Sepolia` 联调。真正上线前需要把“TA 审核通过”和 proof 校验接进来。
+
+现在前端里的 MyGuild 审核操作也会同步到这个服务。只有当 TA 在公会任务审核里把某个任务标记为通过后，签名接口才会对该钱包和该任务返回 `request + signature`。
+
 ## License
 
 Apache-2.0

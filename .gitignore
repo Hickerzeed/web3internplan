@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+contracts/cache/
+contracts/out/
+contracts/broadcast/
