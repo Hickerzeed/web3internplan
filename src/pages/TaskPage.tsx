@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Trophy, ChevronLeft, ChevronRight, ExternalLink, Edit2, Check, Hexagon, Box, Star, Loader2, X, Upload, Clock } from 'lucide-react';
 import { XPIcon } from '../components/XPIcon';
 import { CuberIcon } from '../components/CuberIcon';
+import { mintCuberAchievement } from '../lib/cuberAchievement';
 
 interface TaskPageProps {
   quest: any;
@@ -16,6 +17,9 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
   const [submitText, setSubmitText] = useState('');
   const [submitFile, setSubmitFile] = useState<File | null>(null);
   const [xpCount, setXpCount] = useState(0);
+  const [isMintingOnchain, setIsMintingOnchain] = useState(false);
+  const [mintError, setMintError] = useState<string | null>(null);
+  const [mintTxHash, setMintTxHash] = useState<string | null>(null);
 
   // XP Animation effect
   useEffect(() => {
@@ -33,6 +37,22 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
       return () => clearInterval(interval);
     }
   }, [taskStatus, quest.xp]);
+
+  const handleMintCuber = async () => {
+    setMintError(null);
+    setIsMintingOnchain(true);
+
+    try {
+      const result = await mintCuberAchievement(quest);
+      setMintTxHash(result.hash);
+      setTaskStatus('minted');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Mint failed.';
+      setMintError(message);
+    } finally {
+      setIsMintingOnchain(false);
+    }
+  };
 
   const renderCenterContent = () => {
     switch (taskStatus) {
@@ -126,6 +146,17 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
             <p className="text-gray-500 dark:text-white/60 text-base mb-8">
               Successfully added to your wallet.
             </p>
+            {mintTxHash && (
+              <a
+                href={`https://sepolia.arbiscan.io/tx/${mintTxHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                View transaction
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
           </div>
         );
     }
@@ -171,12 +202,20 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
         );
       case 'minting':
         return (
-          <button 
-            onClick={() => setTaskStatus('minted')}
-            className="px-10 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-bold transition-all shadow-lg shadow-yellow-500/20 transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Mint Cuber
-          </button>
+          <div className="flex flex-col items-end gap-3">
+            {mintError && (
+              <div className="max-w-sm rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 shadow-sm dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                {mintError}
+              </div>
+            )}
+            <button 
+              onClick={handleMintCuber}
+              disabled={isMintingOnchain}
+              className="px-10 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-400/70 disabled:cursor-not-allowed text-white font-bold transition-all shadow-lg shadow-yellow-500/20 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
+            >
+              {isMintingOnchain ? 'Minting on Arbitrum Sepolia...' : 'Mint Cuber'}
+            </button>
+          </div>
         );
       case 'minted':
         return (
@@ -256,6 +295,12 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
         <div className="w-full max-w-[1191px] flex-1 relative bg-gradient-to-br from-blue-50 via-white to-gray-50 dark:from-[#1a3644] dark:via-[#131b24] dark:to-[#101114] rounded-3xl border border-gray-200 dark:border-white/5 overflow-hidden flex flex-col items-center justify-center p-12 min-h-[500px] shadow-xl dark:shadow-2xl transition-all duration-500 mx-auto">
           
           {renderCenterContent()}
+
+          {taskStatus === 'minting' && !mintError && (
+            <div className="absolute left-8 bottom-8 max-w-sm rounded-2xl border border-blue-200 bg-white/90 px-4 py-3 text-sm text-gray-700 shadow-sm backdrop-blur dark:border-blue-500/20 dark:bg-[#101114]/80 dark:text-gray-300">
+              Connect the wallet that received the TA-approved reward, switch to Arbitrum Sepolia, then confirm the `mintWithSignature` transaction.
+            </div>
+          )}
 
           {/* Bottom Right: Action Button */}
           <div className="absolute bottom-8 right-8">

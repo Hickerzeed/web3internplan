@@ -15,6 +15,7 @@ export interface GuildMember {
   id: string;
   name: string;
   role: 'master' | 'member';
+  walletAddress?: string;
   avatar: string;
   level: number;
   cubes: string;

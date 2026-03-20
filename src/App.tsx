@@ -23,6 +23,7 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { GuildData, Task } from './types';
 import SignupFormDemo from './components/ui/signup-form-demo';
 import { X } from 'lucide-react';
+import { syncTaskReview } from './lib/reviewSync';
 
 export default function App() {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -43,7 +44,12 @@ export default function App() {
   });
 
   // Mock Current User
-  const [currentUser] = useState({ id: 'u1', name: '0xA199...a1bD', role: 'master' as const });
+  const [currentUser] = useState({
+    id: 'u1',
+    name: '0xA199...a1bD',
+    role: 'master' as const,
+    walletAddress: '0xF39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+  });
 
   // Mock My Guild State
   const [myGuild, setMyGuild] = useState<GuildData | null>({
@@ -51,9 +57,9 @@ export default function App() {
     name: 'The Questing Elite',
     points: '1.5M',
     members: [
-      { id: 'u1', name: '10090.eth', role: 'master', avatar: 'https://picsum.photos/seed/u1/40/40', level: 112, cubes: '36K', xp: '57K' },
-      { id: 'u2', name: 'dfhcfhdfhdfhfdgfdgfd.eth', role: 'member', avatar: 'https://picsum.photos/seed/u2/40/40', level: 108, cubes: '32K', xp: '46K' },
-      { id: 'u3', name: 'Web3Dev', role: 'member', avatar: 'https://picsum.photos/seed/u3/40/40', level: 45, cubes: '12K', xp: '18K' },
+      { id: 'u1', name: '10090.eth', role: 'master', walletAddress: '0xF39Fd6e51aad88F6F4ce6aB8827279cffFb92266', avatar: 'https://picsum.photos/seed/u1/40/40', level: 112, cubes: '36K', xp: '57K' },
+      { id: 'u2', name: 'dfhcfhdfhdfhfdgfdgfd.eth', role: 'member', walletAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', avatar: 'https://picsum.photos/seed/u2/40/40', level: 108, cubes: '32K', xp: '46K' },
+      { id: 'u3', name: 'Web3Dev', role: 'member', walletAddress: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', avatar: 'https://picsum.photos/seed/u3/40/40', level: 45, cubes: '12K', xp: '18K' },
     ],
     tasks: [
       { id: 't1', title: 'Abstract: Matcha', description: 'Complete your first swap on Matcha.', status: 'pending', proof: 'https://matcha.xyz/tx/123', studentId: 'u2', studentName: 'dfhcfhdfhdfhfdgfdgfd.eth' },
@@ -90,9 +96,31 @@ export default function App() {
 
   const handleTaskReview = (taskId: string, approved: boolean, reason?: string) => {
     if (!myGuild) return;
+    const reviewedTask = myGuild.tasks.find((task) => task.id === taskId);
+    const reviewedMember = reviewedTask
+      ? myGuild.members.find((member) => member.id === reviewedTask.studentId)
+      : null;
+
     setMyGuild({
       ...myGuild,
       tasks: myGuild.tasks.map(t => t.id === taskId ? { ...t, status: approved ? 'completed' : 'failed', failReason: reason } : t)
+    });
+
+    if (!reviewedTask || !reviewedMember?.walletAddress) {
+      return;
+    }
+
+    void syncTaskReview({
+      walletAddress: reviewedMember.walletAddress,
+      taskId: reviewedTask.id,
+      taskTitle: reviewedTask.title,
+      proof: reviewedTask.proof,
+      approved,
+      reason,
+      reviewerId: currentUser.id,
+      reviewerName: currentUser.name,
+    }).catch((error) => {
+      console.error('Failed to sync task review:', error);
     });
   };
 
@@ -193,6 +221,5 @@ export default function App() {
     </div>
   );
 }
-
 
 
