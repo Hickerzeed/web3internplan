@@ -152,32 +152,16 @@ export function Collection({ title, setActivePage, setSelectedQuest }: Collectio
       </button>
 
       {/* Hero Banner */}
-      <div className="relative w-full rounded-[24px] overflow-hidden bg-[#161719] border border-white/[0.05] flex items-center min-h-[180px]">
-        {/* Background Image/Gradient */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#161719] via-[#161719]/80 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-1/2 flex justify-end items-center opacity-80">
-             {/* Abstract shape placeholder */}
-             <div className="w-[300px] h-[300px] bg-emerald-500/20 rounded-full blur-[80px] absolute right-[-50px]" />
-             <img 
-               src="/2.svg" 
-               alt="Abstract Shape" 
-               className="h-[150%] object-contain translate-x-1/4 opacity-50"
-               referrerPolicy="no-referrer"
-             />
-          </div>
-        </div>
-
+      <div className="relative w-full rounded-[32px] overflow-hidden bg-black/[0.02] dark:bg-white/5 backdrop-blur-sm border border-black/[0.04] dark:border-white/10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-none flex items-center min-h-[180px]">
         <div className="relative z-20 p-8 md:p-10 flex flex-col md:flex-row md:items-start justify-between w-full">
           <div className="max-w-2xl">
-            <div className="text-[13px] font-medium text-gray-400 mb-2">Collection</div>
-            <h1 className="text-3xl font-bold text-white mb-3">{title || 'Abstract Ecosystem'}</h1>
-            <p className="text-gray-400 text-[14px] leading-relaxed max-w-lg">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">{title || 'Abstract Ecosystem'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-[14px] leading-relaxed max-w-lg">
               This is not an official Abstract collection and it is intended solely for educational and entertainment purposes.
             </p>
           </div>
           
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-colors border border-white/10 shrink-0 mt-4 md:mt-0">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 text-gray-900 dark:text-white text-sm font-medium transition-colors border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none shrink-0 mt-4 md:mt-0">
             <Share className="w-4 h-4" />
             Share
           </button>
@@ -190,7 +174,7 @@ export function Collection({ title, setActivePage, setSelectedQuest }: Collectio
           {collectionQuests.length} Activations
         </h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ paddingLeft: '16px', marginLeft: '-70px', marginRight: '35px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {collectionQuests.map((quest) => (
             <div key={quest.id} onClick={() => { setSelectedQuest(quest); setActivePage('task'); }}>
               <QuestCard quest={quest} />

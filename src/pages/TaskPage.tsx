@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Trophy, ChevronLeft, ChevronRight, ExternalLink, Edit2, Check, Hexagon, Box, Star, Loader2, X, Upload, Clock } from 'lucide-react';
+import { Heart, Trophy, ChevronLeft, ChevronRight, ExternalLink, Edit2, Check, Hexagon, Box, Star, Loader2, X, Upload, Clock, AlertCircle } from 'lucide-react';
 import { XPIcon } from '../components/XPIcon';
 import { CuberIcon } from '../components/CuberIcon';
 
@@ -8,14 +8,15 @@ interface TaskPageProps {
   onBack: () => void;
 }
 
-type TaskStatus = 'idle' | 'pending' | 'approved' | 'claiming' | 'minting' | 'minted';
+type TaskStatus = 'idle' | 'pending' | 'approved' | 'claiming' | 'minting' | 'minted' | 'rejected';
 
 export function TaskPage({ quest, onBack }: TaskPageProps) {
-  const [taskStatus, setTaskStatus] = useState<TaskStatus>('idle');
+  const [taskStatus, setTaskStatus] = useState<TaskStatus>(quest.taskStatus || 'idle');
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [submitText, setSubmitText] = useState('');
+  const [submitText, setSubmitText] = useState(quest.submittedText || '');
   const [submitFile, setSubmitFile] = useState<File | null>(null);
   const [xpCount, setXpCount] = useState(0);
+  const [levelProgress, setLevelProgress] = useState(65); // Mock level progress
 
   // XP Animation effect
   useEffect(() => {
@@ -27,6 +28,8 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
         if (current >= targetXp) {
           current = targetXp;
           clearInterval(interval);
+          // Simulate level up progress
+          setTimeout(() => setLevelProgress(85), 500);
         }
         setXpCount(current);
       }, 50);
@@ -63,23 +66,44 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
         return (
           <div className="flex flex-col items-center text-center max-w-lg z-10 animate-in fade-in zoom-in duration-500">
             <div className="w-24 h-24 mb-8 rounded-full bg-yellow-100 dark:bg-yellow-500/20 flex items-center justify-center">
-              <Loader2 className="w-12 h-12 text-yellow-600 dark:text-yellow-500 animate-spin" />
+              <Clock className="w-12 h-12 text-yellow-600 dark:text-yellow-500" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Task Submitted!</h2>
-            <p className="text-gray-500 dark:text-white/60 text-base mb-8">
-              Your submission is now pending review by a Teaching Assistant. Please check back later.
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Under Review</h2>
+            <p className="text-gray-500 dark:text-white/60 text-base mb-6">
+              Your submission is currently being reviewed by our Teaching Assistants.
             </p>
+            <div className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-left mb-4">
+              <div className="text-xs font-bold text-gray-400 uppercase mb-2">Your Submission</div>
+              <div className="text-sm text-gray-700 dark:text-gray-300 italic">
+                "{submitText || 'No description provided'}"
+              </div>
+            </div>
+          </div>
+        );
+      case 'rejected':
+        return (
+          <div className="flex flex-col items-center text-center max-w-lg z-10 animate-in fade-in zoom-in duration-500">
+            <div className="w-24 h-24 mb-8 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+              <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-500" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Submission Rejected</h2>
+            <div className="w-full p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-left mb-8">
+              <div className="text-xs font-bold text-red-500 uppercase mb-2">Reason for Rejection</div>
+              <div className="text-sm text-red-700 dark:text-red-400">
+                {quest.rejectReason || 'Please review the task requirements and try again.'}
+              </div>
+            </div>
           </div>
         );
       case 'approved':
         return (
           <div className="flex flex-col items-center text-center max-w-lg z-10 animate-in fade-in zoom-in duration-500">
-            <div className="w-24 h-24 mb-8 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center">
-              <Check className="w-12 h-12 text-green-600 dark:text-green-500" />
+            <div className="w-24 h-24 mb-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              <Check className="w-12 h-12 text-emerald-600 dark:text-emerald-500" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Task Approved!</h2>
-            <p className="text-gray-500 dark:text-white/60 text-base mb-8">
-              The TA has approved your submission. You can now claim your rewards.
+            <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Congratulations!</h2>
+            <p className="text-gray-500 dark:text-white/60 text-lg mb-8">
+              Your hard work paid off! Your submission has been approved.
             </p>
           </div>
         );
@@ -90,15 +114,44 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
               <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
               <Trophy className="w-32 h-32 text-blue-500 fill-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]" />
             </div>
-            <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Rewards Claimed!</h2>
+            <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Level Up!</h2>
             
-            <div className="flex items-center justify-center gap-8 mb-10">
+            <div className="flex items-center justify-center gap-12 mb-10">
               <div className="flex flex-col items-center">
                 <div className="text-5xl font-bold text-[#00D395] mb-2 flex items-center gap-3">
                   <XPIcon className="w-10 h-10" />
                   <span>+{xpCount}</span>
                 </div>
                 <div className="text-gray-500 dark:text-white/60 font-medium uppercase tracking-wider text-sm">XP Earned</div>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <div className="relative w-24 h-24 flex items-center justify-center mb-2">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="transparent"
+                      className="text-gray-200 dark:text-white/10"
+                    />
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="transparent"
+                      strokeDasharray={251.2}
+                      strokeDashoffset={251.2 - (251.2 * levelProgress) / 100}
+                      className="text-blue-500 transition-all duration-1000 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute text-2xl font-bold text-gray-900 dark:text-white">12</span>
+                </div>
+                <div className="text-gray-500 dark:text-white/60 font-medium uppercase tracking-wider text-sm">Current Level</div>
               </div>
             </div>
           </div>
@@ -144,11 +197,28 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
         );
       case 'pending':
         return (
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setTaskStatus('idle')}
+              className="px-6 py-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white font-medium transition-all"
+            >
+              Withdraw
+            </button>
+            <button 
+              onClick={() => setIsSubmitModalOpen(true)}
+              className="px-8 py-3 rounded-xl bg-[#007AFF] hover:bg-[#0066CC] text-white font-bold transition-all shadow-lg shadow-blue-500/20"
+            >
+              Edit & Resubmit
+            </button>
+          </div>
+        );
+      case 'rejected':
+        return (
           <button 
-            onClick={() => setTaskStatus('approved')}
-            className="px-8 py-3 rounded-xl bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-white font-medium transition-all"
+            onClick={() => setIsSubmitModalOpen(true)}
+            className="px-10 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all shadow-lg shadow-red-500/20"
           >
-            (Demo) Simulate TA Approval
+            Resubmit for Review
           </button>
         );
       case 'approved':
@@ -191,7 +261,7 @@ export function TaskPage({ quest, onBack }: TaskPageProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full h-full bg-white dark:bg-[#101114] transition-colors duration-300 overflow-hidden relative">
+    <div className="flex-1 flex flex-col w-full h-full bg-transparent transition-colors duration-300 overflow-hidden relative">
       <div className="flex-1 flex flex-col w-full p-6 max-w-[1200px] mx-auto justify-center">
         {/* Top Bar (Header) - 1191x60 */}
         <div className="w-full max-w-[1191px] h-[60px] flex items-center justify-between bg-gray-50/50 dark:bg-white/[0.02] backdrop-blur-md border border-gray-200 dark:border-white/5 rounded-2xl pl-6 pr-0 mb-[5px] shrink-0 mx-auto shadow-sm">

@@ -9,6 +9,11 @@ interface GuildDetailProps {
 export function GuildDetail({ setActivePage }: GuildDetailProps) {
   const [activeTab, setActiveTab] = useState('Members');
   const [timeFilter, setTimeFilter] = useState('All time');
+  const [joinStatus, setJoinStatus] = useState<'none' | 'requested' | 'joined'>('none');
+
+  const handleJoin = () => {
+    setJoinStatus('requested');
+  };
 
   const members = [
     { name: '10090.eth', role: 'Member', level: 112, avatar: 'bg-red-900', points: '36K', glory: '56K' },
@@ -17,6 +22,8 @@ export function GuildDetail({ setActivePage }: GuildDetailProps) {
     { name: 'web3wizard.eth', role: 'Member', level: 85, avatar: 'bg-purple-900', points: '15K', glory: '38K' },
     { name: 'nftcollector.eth', role: 'Member', level: 72, avatar: 'bg-orange-900', points: '12K', glory: '31K' },
   ];
+  
+  const maxMembers = 50;
 
   return (
     <div className="flex-1 overflow-y-auto scroll-smooth scrollbar-hide pb-20 pt-8">
@@ -108,9 +115,23 @@ export function GuildDetail({ setActivePage }: GuildDetailProps) {
                 </div>
               </div>
 
-              <button className="w-full py-4 rounded-xl font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 cursor-not-allowed">
-                Invite only
-              </button>
+              {members.length >= maxMembers ? (
+                <button disabled className="w-full py-4 rounded-xl font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/10 cursor-not-allowed">
+                  公会人数已满 (Guild is full)
+                </button>
+              ) : joinStatus === 'requested' ? (
+                <button disabled className="w-full py-4 rounded-xl font-bold text-white bg-gray-400 dark:bg-gray-600 cursor-not-allowed transition-colors">
+                  Request Sent
+                </button>
+              ) : joinStatus === 'joined' ? (
+                <button disabled className="w-full py-4 rounded-xl font-bold text-white bg-gray-400 dark:bg-gray-600 cursor-not-allowed transition-colors">
+                  Joined
+                </button>
+              ) : (
+                <button onClick={handleJoin} className="w-full py-4 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 transition-colors">
+                  Join
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -136,7 +157,7 @@ export function GuildDetail({ setActivePage }: GuildDetailProps) {
           <div className="flex items-center gap-2 bg-gray-100 dark:bg-[#101114] p-1.5 rounded-2xl w-fit border border-gray-200 dark:border-white/5">
             <span className="px-4 text-sm font-bold text-gray-900 dark:text-white">Period</span>
             <div className="h-4 w-px bg-gray-300 dark:bg-white/10 mx-1" />
-            {['All time', '24h', '7d', '30d'].map((filter) => (
+            {['All time', '24h', '7d'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setTimeFilter(filter)}

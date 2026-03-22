@@ -1,28 +1,51 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Edit2, Trash2, Save, LayoutTemplate, Target, Settings, Image as ImageIcon, ChevronLeft, Eye, Copy, Users, Clock, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { TaskPage } from './TaskPage';
 
 interface AdminDashboardProps {
   setActivePage: (page: string) => void;
+  banners: any[];
+  setBanners: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-export function AdminDashboard({ setActivePage }: AdminDashboardProps) {
+export function AdminDashboard({ setActivePage, banners, setBanners }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('quests');
   const [questView, setQuestView] = useState<'list' | 'form' | 'preview'>('list');
 
-  // Mock data for banners
-  const [banners, setBanners] = useState([
-    { id: 1, title: 'Earn with Ample on Base', description: 'A new way to amplify your money.', status: 'Active' },
-    { id: 2, title: 'Explore the Zora Network', description: 'Mint, collect, and enjoy pure internet culture.', status: 'Draft' },
-    { id: 3, title: 'Provide Liquidity on Uniswap', description: 'Earn fees by providing liquidity to top pools.', status: 'Active' }
-  ]);
+  // Banner Management State
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<any>(null);
+  const [bannerFormData, setBannerFormData] = useState({
+    tag: '',
+    title: '',
+    description: '',
+    buttonText: '',
+    image: '',
+    status: 'Active'
+  });
 
   // Mock data for quests
   const [quests, setQuests] = useState([
     { id: 1, title: 'Get Started with Web3', primaryCategory: '通用任务', secondaryCategory: 'Get Started', xp: 100, status: 'Online', isBounty: false },
     { id: 2, title: 'Deploy your first Smart Contract', primaryCategory: '技术任务', secondaryCategory: '第一周', xp: 300, status: 'Online', isBounty: true },
-    { id: 3, title: 'Write a Twitter Thread', primaryCategory: '运营任务', secondaryCategory: '第二周', xp: 150, status: 'Offline', isBounty: false }
+    { id: 3, title: 'Write a Twitter Thread', primaryCategory: '运营任务', secondaryCategory: '第二周', xp: 150, status: 'Offline', isBounty: false },
+    { id: 4, title: 'Create a Dune Dashboard', primaryCategory: '技术任务', secondaryCategory: '第三周', xp: 500, status: 'Online', isBounty: true }
   ]);
+
+  // Mock data for bounty submissions
+  const [bountySubmissions, setBountySubmissions] = useState([
+    { id: 1, user: '0x1234...5678', questTitle: 'Deploy your first Smart Contract', submittedAt: '2026-03-20', status: 'Pending', proof: 'https://sepolia.etherscan.io/tx/0x...' },
+    { id: 2, user: '0xabcd...ef01', questTitle: 'Create a Dune Dashboard', submittedAt: '2026-03-21', status: 'Pending', proof: 'https://dune.com/dashboard/...' },
+    { id: 3, user: '0x9999...8888', questTitle: 'Deploy your first Smart Contract', submittedAt: '2026-03-21', status: 'Approved', proof: 'https://sepolia.etherscan.io/tx/0xabc...' },
+  ]);
+
+  const [selectedBountyFilter, setSelectedBountyFilter] = useState('All');
+
+  const bountyQuests = quests.filter(q => q.isBounty);
+  const filteredSubmissions = selectedBountyFilter === 'All'
+    ? bountySubmissions
+    : bountySubmissions.filter(s => s.questTitle === selectedBountyFilter);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -77,6 +100,73 @@ export function AdminDashboard({ setActivePage }: AdminDashboardProps) {
   const handlePublish = () => {
     setQuestView('list');
     // Add to quests logic here
+  };
+
+  const handleOpenBannerModal = (banner?: any) => {
+    if (banner) {
+      setEditingBanner(banner);
+      setBannerFormData({
+        tag: banner.tag || banner.activation || '',
+        title: banner.title || '',
+        description: banner.description || '',
+        buttonText: banner.buttonText || '',
+        image: banner.image || '',
+        status: banner.status || 'Active'
+      });
+    } else {
+      setEditingBanner(null);
+      setBannerFormData({
+        tag: '',
+        title: '',
+        description: '',
+        buttonText: '',
+        image: '',
+        status: 'Active'
+      });
+    }
+    setIsBannerModalOpen(true);
+  };
+
+  const handleCloseBannerModal = () => {
+    setIsBannerModalOpen(false);
+    setEditingBanner(null);
+  };
+
+  const handleBannerImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = URL.createObjectURL(file);
+      setBannerFormData(prev => ({ ...prev, image: url }));
+    }
+  };
+
+  const handleSaveBanner = () => {
+    if (editingBanner) {
+      setBanners(prev => prev.map(b => b.id === editingBanner.id ? { ...b, ...bannerFormData } : b));
+    } else {
+      const newBanner = {
+        id: Date.now(),
+        ...bannerFormData,
+        // Default styling for new banners
+        bgFrom: "from-blue-900/40",
+        bgVia: "via-blue-900/20",
+        bgTo: "to-[#101114]",
+        iconColor: "text-blue-400",
+        iconBg: "bg-blue-900/40",
+        iconBorder: "border-blue-500/20",
+        dotColor: "bg-blue-400",
+        glowColor: "shadow-[0_0_100px_rgba(96,165,250,0.2)]",
+        glowColorHex: "#60a5fa",
+        platformIcon: "bg-[#0066FF]",
+        platformSymbol: "N"
+      };
+      setBanners(prev => [...prev, newBanner]);
+    }
+    handleCloseBannerModal();
+  };
+
+  const handleDeleteBanner = (id: number) => {
+    setBanners(prev => prev.filter(b => b.id !== id));
   };
 
   if (questView === 'preview') {
@@ -147,11 +237,11 @@ export function AdminDashboard({ setActivePage }: AdminDashboardProps) {
               Hero Banners
             </button>
             <button 
-              onClick={() => setActiveTab('settings')}
-              className={`pb-4 font-medium transition-colors flex items-center gap-2 ${activeTab === 'settings' ? 'text-blue-500 border-b-2 border-blue-500' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+              onClick={() => setActiveTab('bounties')}
+              className={`pb-4 font-medium transition-colors flex items-center gap-2 ${activeTab === 'bounties' ? 'text-blue-500 border-b-2 border-blue-500' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
             >
-              <Settings className="w-4 h-4" />
-              General Settings
+              <CheckCircle2 className="w-4 h-4" />
+              Bounty Review
             </button>
           </div>
         )}
@@ -161,7 +251,10 @@ export function AdminDashboard({ setActivePage }: AdminDashboardProps) {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Manage Hero Banners</h2>
-              <button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-lg shadow-blue-500/20">
+              <button 
+                onClick={() => handleOpenBannerModal()}
+                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-lg shadow-blue-500/20"
+              >
                 <Plus className="w-4 h-4" /> Add Banner
               </button>
             </div>
@@ -193,8 +286,18 @@ export function AdminDashboard({ setActivePage }: AdminDashboardProps) {
                         </span>
                       </td>
                       <td className="p-4 flex justify-end gap-2">
-                        <button className="p-2 text-gray-500 hover:text-blue-500 bg-gray-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button className="p-2 text-gray-500 hover:text-red-500 bg-gray-50 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button 
+                          onClick={() => handleOpenBannerModal(banner)}
+                          className="p-2 text-gray-500 hover:text-blue-500 bg-gray-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteBanner(banner.id)}
+                          className="p-2 text-gray-500 hover:text-red-500 bg-gray-50 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -482,30 +585,182 @@ export function AdminDashboard({ setActivePage }: AdminDashboardProps) {
           </div>
         )}
 
-        {activeTab === 'settings' && (
-          <div className="bg-white dark:bg-[#161719] border border-gray-200 dark:border-white/5 rounded-2xl p-8 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">General Settings</h2>
-            <div className="space-y-6 max-w-xl">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Platform Name</label>
-                <input type="text" defaultValue="Moledao Web3" className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Maintenance Mode</label>
-                <select className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow appearance-none">
-                  <option>Disabled</option>
-                  <option>Enabled</option>
+        {activeTab === 'bounties' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Bounty Submissions Review</h2>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Quest:</label>
+                <select
+                  value={selectedBountyFilter}
+                  onChange={(e) => setSelectedBountyFilter(e.target.value)}
+                  className="bg-white dark:bg-[#161719] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="All">All Bounties</option>
+                  {bountyQuests.map(q => (
+                    <option key={q.id} value={q.title}>{q.title}</option>
+                  ))}
                 </select>
               </div>
-              <div className="pt-4">
-                <button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 transform hover:scale-[1.02] active:scale-[0.98]">
-                  <Save className="w-5 h-5" /> Save Changes
-                </button>
-              </div>
+            </div>
+            <div className="bg-white dark:bg-[#161719] border border-gray-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/5">
+                    <th className="p-4 text-sm font-semibold text-gray-600 dark:text-gray-300">User</th>
+                    <th className="p-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Quest</th>
+                    <th className="p-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Submitted At</th>
+                    <th className="p-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Proof</th>
+                    <th className="p-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
+                    <th className="p-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSubmissions.length > 0 ? filteredSubmissions.map(submission => (
+                    <tr key={submission.id} className="border-b border-gray-200 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="p-4 text-sm font-bold text-gray-900 dark:text-white">{submission.user}</td>
+                      <td className="p-4 text-sm text-gray-500 dark:text-gray-400">{submission.questTitle}</td>
+                      <td className="p-4 text-sm text-gray-500 dark:text-gray-400">{submission.submittedAt}</td>
+                      <td className="p-4 text-sm text-blue-500 hover:underline cursor-pointer truncate max-w-[150px]">{submission.proof}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                          submission.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400' :
+                          submission.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                          'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                        }`}>
+                          {submission.status}
+                        </span>
+                      </td>
+                      <td className="p-4 flex justify-end gap-2">
+                        {submission.status === 'Pending' && (
+                          <>
+                            <button 
+                              onClick={() => setBountySubmissions(prev => prev.map(s => s.id === submission.id ? { ...s, status: 'Approved' } : s))}
+                              className="p-2 text-emerald-500 hover:text-white bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-500 rounded-lg transition-colors" title="Approve">
+                              <CheckCircle2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => setBountySubmissions(prev => prev.map(s => s.id === submission.id ? { ...s, status: 'Rejected' } : s))}
+                              className="p-2 text-red-500 hover:text-white bg-red-50 dark:bg-red-500/10 hover:bg-red-500 rounded-lg transition-colors" title="Reject">
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        No submissions found for this bounty.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
       </div>
+
+      {/* Banner Modal */}
+      {isBannerModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#161719] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-white/5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-200 dark:border-white/5 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {editingBanner ? 'Edit Banner' : 'Create Banner'}
+              </h3>
+              <button 
+                onClick={handleCloseBannerModal}
+                className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tag (Top Text)</label>
+                <input 
+                  type="text" 
+                  value={bannerFormData.tag}
+                  onChange={(e) => setBannerFormData({...bannerFormData, tag: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="e.g., Featured, New Quest"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Title</label>
+                <input 
+                  type="text" 
+                  value={bannerFormData.title}
+                  onChange={(e) => setBannerFormData({...bannerFormData, title: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="Banner Title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subtitle (Description)</label>
+                <textarea 
+                  value={bannerFormData.description}
+                  onChange={(e) => setBannerFormData({...bannerFormData, description: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[100px]"
+                  placeholder="Banner description..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Button Text</label>
+                <input 
+                  type="text" 
+                  value={bannerFormData.buttonText}
+                  onChange={(e) => setBannerFormData({...bannerFormData, buttonText: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="e.g., Explore Now"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Banner Image</label>
+                <div className="flex items-center gap-3">
+                  {bannerFormData.image && (
+                    <img src={bannerFormData.image} alt="Preview" className="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-white/10 bg-black/5 dark:bg-white/5" />
+                  )}
+                  <label className="flex-1 flex items-center justify-center gap-2 bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 border-dashed rounded-xl px-4 py-3 text-gray-500 hover:text-blue-500 hover:border-blue-500 cursor-pointer transition-colors">
+                    <ImageIcon className="w-4 h-4" />
+                    <span className="text-sm font-medium">Upload Image</span>
+                    <input type="file" accept="image/*,.svg" onChange={handleBannerImageUpload} className="hidden" />
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                <select 
+                  value={bannerFormData.status}
+                  onChange={(e) => setBannerFormData({...bannerFormData, status: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-[#101114] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                </select>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-white/5 flex justify-end gap-3 bg-gray-50 dark:bg-white/[0.02]">
+              <button 
+                onClick={handleCloseBannerModal}
+                className="px-6 py-2.5 rounded-xl font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveBanner}
+                className="px-6 py-2.5 rounded-xl font-medium bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-colors flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Save Banner
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

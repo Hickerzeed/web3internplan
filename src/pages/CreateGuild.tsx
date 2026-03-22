@@ -9,7 +9,6 @@ export function CreateGuild({ setActivePage }: CreateGuildProps) {
   const [selectedLogo, setSelectedLogo] = useState<number>(0);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [accessType, setAccessType] = useState<'public' | 'invite'>('public');
 
   const logos = [Shield, Flame, Ghost, Cat, CloudRain, Globe, Hexagon, Zap, Crown, Target];
 
@@ -80,35 +79,6 @@ export function CreateGuild({ setActivePage }: CreateGuildProps) {
               <span className="absolute bottom-3 right-4 text-xs text-gray-400">
                 {180 - description.length}
               </span>
-            </div>
-          </div>
-
-          {/* Access Type */}
-          <div className="mb-10">
-            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">
-              Access Type <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setAccessType('public')}
-                className={`flex-1 py-3 rounded-xl font-medium transition-all ${
-                  accessType === 'public'
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md'
-                    : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
-                }`}
-              >
-                Public
-              </button>
-              <button
-                onClick={() => setAccessType('invite')}
-                className={`flex-1 py-3 rounded-xl font-medium transition-all ${
-                  accessType === 'invite'
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md'
-                    : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
-                }`}
-              >
-                Invite Only
-              </button>
             </div>
           </div>
 

@@ -1,90 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, Star, LayoutGrid, Globe, Target, Flame, ChevronLeft, ChevronRight, Clock, PlayCircle } from 'lucide-react';
+import { Home, Star, LayoutGrid, Globe, Target, Flame, ChevronLeft, ChevronRight, Clock, PlayCircle, Send, Rocket, Sparkles } from 'lucide-react';
 import { QuestCard } from '../components/QuestCard';
 import { GlowOverlay } from '../components/GlowOverlay';
-
-const banners = [
-  {
-    id: 1,
-    activation: "Activation",
-    title: "Earn with Ample on Base",
-    description: "A new way to amplify your money.",
-    participants: "647",
-    xp: 100,
-    cubes: 1,
-    bgFrom: "from-[#1a3a2a]",
-    bgVia: "via-[#0f251d]",
-    bgTo: "to-[#101114]",
-    iconColor: "text-green-400",
-    iconBg: "bg-[#1a4a3a]",
-    iconBorder: "border-green-500/20",
-    dotColor: "bg-green-400",
-    glowColor: "shadow-[0_0_100px_rgba(74,222,128,0.2)]",
-    glowColorHex: "#4ade80",
-    platformIcon: "bg-[#00D395]", // Ample green
-    platformSymbol: "A"
-  },
-  {
-    id: 2,
-    activation: "New Quest",
-    title: "Explore the Zora Network",
-    description: "Mint, collect, and enjoy pure internet culture.",
-    participants: "12.4K",
-    xp: 250,
-    cubes: 2,
-    bgFrom: "from-blue-900/40",
-    bgVia: "via-blue-900/20",
-    bgTo: "to-[#101114]",
-    iconColor: "text-blue-400",
-    iconBg: "bg-blue-900/40",
-    iconBorder: "border-blue-500/20",
-    dotColor: "bg-blue-400",
-    glowColor: "shadow-[0_0_100px_rgba(96,165,250,0.2)]",
-    glowColorHex: "#60a5fa",
-    platformIcon: "bg-[#0066FF]", // Zora blue
-    platformSymbol: "Z"
-  },
-  {
-    id: 3,
-    activation: "Trending",
-    title: "Provide Liquidity on Uniswap",
-    description: "Earn fees by providing liquidity to top pools.",
-    participants: "8.2K",
-    xp: 150,
-    cubes: 1,
-    bgFrom: "from-pink-900/40",
-    bgVia: "via-pink-900/20",
-    bgTo: "to-[#101114]",
-    iconColor: "text-pink-400",
-    iconBg: "bg-pink-900/40",
-    iconBorder: "border-pink-500/20",
-    dotColor: "bg-pink-400",
-    glowColor: "shadow-[0_0_100px_rgba(244,114,182,0.2)]",
-    glowColorHex: "#f472b6",
-    platformIcon: "bg-[#FF007A]", // Uniswap pink
-    platformSymbol: "U"
-  },
-  {
-    id: 4,
-    activation: "Special Event",
-    title: "Moledao Web3 Bootcamp",
-    description: "Join the ultimate Web3 learning experience.",
-    participants: "1.5K",
-    xp: 500,
-    cubes: 3,
-    bgFrom: "from-purple-900/40",
-    bgVia: "via-purple-900/20",
-    bgTo: "to-[#101114]",
-    iconColor: "text-purple-400",
-    iconBg: "bg-purple-900/40",
-    iconBorder: "border-purple-500/20",
-    dotColor: "bg-purple-400",
-    glowColor: "shadow-[0_0_100px_rgba(192,132,252,0.2)]",
-    glowColorHex: "#c084fc",
-    platformIcon: "bg-[#8A2BE2]", // Moledao purple
-    platformSymbol: "M"
-  }
-];
 
 const categories = [
   { icon: Home, label: 'All' },
@@ -92,8 +9,6 @@ const categories = [
   { label: 'Technical' },
   { label: 'Operational' },
   { label: 'Bounty' },
-  { label: 'In Progress' },
-  { label: 'Pending' },
 ];
 
 const quests = [
@@ -108,6 +23,7 @@ const quests = [
     difficulty: "Easy",
     participants: "29K",
     cubes: 1,
+    category: "General",
     tags: [] as string[]
   },
   {
@@ -121,6 +37,7 @@ const quests = [
     difficulty: "Medium",
     participants: "12K",
     xp: 150,
+    category: "Technical",
     tags: ["DeFi", "Trending"]
   },
   {
@@ -135,6 +52,7 @@ const quests = [
     participants: "8.5K",
     xp: 200,
     cubes: 1,
+    category: "General",
     tags: ["NFTs"]
   },
   {
@@ -149,6 +67,7 @@ const quests = [
     participants: "5.2K",
     xp: 300,
     cubes: 2,
+    category: "Operational",
     tags: ["DeFi"]
   },
   {
@@ -163,6 +82,7 @@ const quests = [
     participants: "45K",
     xp: 500,
     cubes: 3,
+    category: "Bounty",
     tags: ["Layer 2", "Trending"]
   },
   {
@@ -176,6 +96,7 @@ const quests = [
     difficulty: "Hard",
     participants: "3.1K",
     xp: 250,
+    category: "Technical",
     tags: ["DeFi"]
   },
   {
@@ -190,6 +111,7 @@ const quests = [
     participants: "18K",
     xp: 100,
     cubes: 1,
+    category: "Operational",
     tags: ["Layer 2"]
   },
   {
@@ -203,6 +125,7 @@ const quests = [
     difficulty: "Easy",
     participants: "102K",
     xp: 150,
+    category: "Bounty",
     tags: ["Gaming"]
   }
 ];
@@ -211,9 +134,10 @@ interface DiscoverProps {
   setActivePage: (page: string) => void;
   setSelectedCollectionTitle: (title: string) => void;
   setSelectedQuest: (quest: any) => void;
+  banners: any[];
 }
 
-export function Discover({ setActivePage, setSelectedCollectionTitle, setSelectedQuest }: DiscoverProps) {
+export function Discover({ setActivePage, setSelectedCollectionTitle, setSelectedQuest, banners }: DiscoverProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -295,10 +219,25 @@ export function Discover({ setActivePage, setSelectedCollectionTitle, setSelecte
                 
                 {/* Token SVG (2.svg) - Positioned on top of the pedestal */}
                 <div className="absolute top-[-5%] left-[50.5%] -translate-x-1/2 w-[80%] aspect-square flex items-center justify-center">
+                  {/* Inner Image */}
+                  <div 
+                    className="absolute z-30 w-[55%] h-[55%] rounded-full overflow-hidden shadow-[inset_0_4px_12px_rgba(0,0,0,0.4)]"
+                    style={{
+                      // 微调位置，向右下移动以对齐正面白圈，并调整透视比例
+                      transform: 'translate(2%, -1%) rotate(14deg) scaleX(0.54) scaleY(0.95)',
+                    }}
+                  >
+                    <img 
+                      src={`https://picsum.photos/seed/${currentBanner.id}/400/400`}
+                      alt="Inner Graphic"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
                   <img 
-                    src="/2.svg"
+                    src={currentBanner.image || "/2.svg"}
                     alt="Token Frame"
-                    className="w-full h-full object-contain z-20 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]"
+                    className="w-full h-full object-contain z-20 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] pointer-events-none"
                     referrerPolicy="no-referrer"
                   />
                 </div>
@@ -311,7 +250,7 @@ export function Discover({ setActivePage, setSelectedCollectionTitle, setSelecte
             {/* Tag */}
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-black/[0.03] dark:bg-white/10 border border-black/[0.04] dark:border-white/10 text-xs font-medium text-gray-800 dark:text-white/90 mb-6 backdrop-blur-sm w-fit">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 mr-2" />
-              {currentBanner.activation || 'Featured'}
+              {currentBanner.tag || currentBanner.activation || 'Featured'}
             </div>
 
             {/* Title */}
@@ -327,7 +266,7 @@ export function Discover({ setActivePage, setSelectedCollectionTitle, setSelecte
             {/* Button */}
             <button className="relative inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-black/[0.03] dark:bg-white/10 border border-black/[0.06] dark:border-white/20 text-gray-900 dark:text-white font-medium transition-all duration-300 hover:bg-black/[0.06] dark:hover:bg-white/20 active:scale-[0.98] w-fit group/btn">
               <span className="flex items-center gap-2">
-                Explore Now
+                {currentBanner.buttonText || 'Explore Now'}
                 <svg className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
@@ -392,31 +331,110 @@ export function Discover({ setActivePage, setSelectedCollectionTitle, setSelecte
       </section>
 
       {/* Quest Sections */}
-      {['Get started', 'Week 1', 'Week 2', 'Week 3', 'Week 4'].map((sectionTitle, idx) => (
-        <section key={sectionTitle}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{sectionTitle}</h2>
-            <button 
-              onClick={() => {
-                setSelectedCollectionTitle(sectionTitle);
-                setActivePage('collection');
-              }}
-              className="bg-white dark:bg-[#101114] hover:bg-gray-50 dark:hover:bg-[#101114] text-gray-900 dark:text-white px-4 py-2 rounded-full text-sm font-medium transition-colors border border-gray-200 dark:border-white/5"
+      {['Get started', 'Week 1', 'Week 2', 'Week 3', 'Week 4']
+        .filter(sectionTitle => activeCategory === 'All' || sectionTitle !== 'Get started')
+        .map((sectionTitle, idx) => {
+        const filteredQuests = activeCategory === 'All' 
+          ? quests 
+          : quests.filter(q => q.category === activeCategory);
+        
+        if (filteredQuests.length === 0) return null;
+
+        const sectionQuests = filteredQuests.slice(idx % filteredQuests.length).concat(filteredQuests.slice(0, idx % filteredQuests.length));
+
+        return (
+          <QuestSection 
+            key={sectionTitle}
+            sectionTitle={sectionTitle}
+            quests={sectionQuests}
+            setSelectedCollectionTitle={setSelectedCollectionTitle}
+            setActivePage={setActivePage}
+            setSelectedQuest={setSelectedQuest}
+          />
+        );
+      })}
+    </div>
+    </div>
+  );
+}
+
+function QuestSection({ sectionTitle, quests, setSelectedCollectionTitle, setActivePage, setSelectedQuest }: any) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(true);
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    setShowLeft(scrollLeft > 0);
+    setShowRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
+  }, [quests.length]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollContainerRef.current) return;
+    const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+    scrollContainerRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  return (
+    <section className="relative group/section">
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{sectionTitle}</h2>
+        <button 
+          onClick={() => {
+            setSelectedCollectionTitle(sectionTitle);
+            setActivePage('collection');
+          }}
+          className="bg-white dark:bg-[#101114] hover:bg-gray-50 dark:hover:bg-[#101114] text-gray-900 dark:text-white px-4 py-2 rounded-full text-sm font-medium transition-colors border border-gray-200 dark:border-white/5"
+        >
+          Show all
+        </button>
+      </div>
+      
+      <div className="relative">
+        {/* Left Button */}
+        <button 
+          onClick={() => scroll('left')}
+          className={`absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/30 dark:bg-black/20 backdrop-blur-md border border-black/[0.05] dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white opacity-0 group-hover/section:opacity-100 transition-all duration-300 hover:bg-white/50 dark:hover:bg-black/40 z-30 shadow-sm ${!showLeft ? 'hidden' : ''}`}
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+
+        {/* Right Button */}
+        <button 
+          onClick={() => scroll('right')}
+          className={`absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/30 dark:bg-black/20 backdrop-blur-md border border-black/[0.05] dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white opacity-0 group-hover/section:opacity-100 transition-all duration-300 hover:bg-white/50 dark:hover:bg-black/40 z-30 shadow-sm ${!showRight ? 'hidden' : ''}`}
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* Scroll Container */}
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+        >
+          {quests.map((quest: any) => (
+            <div 
+              key={quest.id} 
+              onClick={() => { setSelectedQuest(quest); setActivePage('task'); }}
+              className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333333%-16px)] shrink-0 snap-start cursor-pointer"
             >
-              Show all
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {quests.slice(idx, idx + 3).map((quest) => (
-              <div key={quest.id} onClick={() => { setSelectedQuest(quest); setActivePage('task'); }}>
-                <QuestCard quest={quest} />
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-    </div>
+              <QuestCard quest={quest} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

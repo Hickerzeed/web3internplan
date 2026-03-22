@@ -31,11 +31,23 @@ export interface Activity {
   timestamp: string;
 }
 
+export interface JoinRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userLevel: number;
+  timestamp: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export interface GuildData {
   id: string;
   name: string;
   points: string;
+  maxMembers: number;
   members: GuildMember[];
   tasks: Task[];
   activities: Activity[];
+  joinRequests?: JoinRequest[];
 }

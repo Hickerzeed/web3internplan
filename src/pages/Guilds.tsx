@@ -57,7 +57,7 @@ export function Guilds({ setActivePage, myGuild }: GuildsProps) {
             Top Guilds
           </div>
           <div className="h-4 w-px bg-gray-300 dark:bg-white/10 mx-2" />
-          {['All time', '24h', '7d', '30d'].map((filter) => (
+          {['All time', '24h', '7d'].map((filter) => (
             <button
               key={filter}
               onClick={() => setTimeFilter(filter)}

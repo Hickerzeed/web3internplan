@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 interface TopBarProps {
   isRightPanelOpen: boolean;
   setIsRightPanelOpen: (val: boolean) => void;
-  scrollProgress: number;
   isDark: boolean;
   setIsDark: (val: boolean) => void;
   setActivePage: (page: string) => void;
@@ -12,7 +11,7 @@ interface TopBarProps {
   onLoginClick?: () => void;
 }
 
-export function TopBar({ isRightPanelOpen, setIsRightPanelOpen, scrollProgress, isDark, setIsDark, setActivePage, isLoggedIn = false, onLoginClick }: TopBarProps) {
+export function TopBar({ isRightPanelOpen, setIsRightPanelOpen, isDark, setIsDark, setActivePage, isLoggedIn = false, onLoginClick }: TopBarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -28,12 +27,6 @@ export function TopBar({ isRightPanelOpen, setIsRightPanelOpen, scrollProgress, 
 
   return (
     <header className="h-16 flex items-center justify-between px-6 shrink-0 bg-transparent relative z-20 transition-colors duration-300">
-      {/* Scroll Progress Bar */}
-      <div 
-        className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 transition-all duration-150 ease-out z-50 shadow-[0_0_10px_rgba(74,222,128,0.5)]" 
-        style={{ width: `${scrollProgress}%` }} 
-      />
-
       <div className="flex-1 max-w-xs">
         <div className="relative group flex items-center">
           <div className="absolute left-3 flex items-center pointer-events-none">

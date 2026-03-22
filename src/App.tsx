@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, UIEvent, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { Discover } from './pages/Discover';
+import { MyTasks } from './pages/MyTasks';
 import { Profile } from './pages/Profile';
 import { EditProfile } from './pages/EditProfile';
 import { Leagues } from './pages/Leagues';
@@ -23,16 +24,23 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { GuildData, Task } from './types';
 import SignupFormDemo from './components/ui/signup-form-demo';
 import { X } from 'lucide-react';
+import { AnimatedGridPattern } from './components/ui/animated-grid-pattern';
+import { cn } from './lib/utils';
 
 export default function App() {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [isDark, setIsDark] = useState(false);
   const [activePage, setActivePage] = useState<string>('discover');
+  const [previousPage, setPreviousPage] = useState<string>('discover');
   const [selectedCollectionTitle, setSelectedCollectionTitle] = useState<string>('');
   const [selectedQuest, setSelectedQuest] = useState<any>(null);
+
+  const handlePageChange = (page: string) => {
+    setPreviousPage(activePage);
+    setActivePage(page);
+  };
   const [personalName, setPersonalName] = useState<string>('0xA199...a1bD');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [socialVisibility, setSocialVisibility] = useState<Record<string, boolean>>({
     twitter: true,
@@ -45,11 +53,96 @@ export default function App() {
   // Mock Current User
   const [currentUser] = useState({ id: 'u1', name: '0xA199...a1bD', role: 'master' as const });
 
+  // Shared Banners State
+  const [banners, setBanners] = useState([
+    {
+      id: 1,
+      tag: "Activation",
+      title: "Earn with Ample on Base",
+      description: "A new way to amplify your money.",
+      buttonText: "Explore Now",
+      image: "/2.svg",
+      bgFrom: "from-[#1a3a2a]",
+      bgVia: "via-[#0f251d]",
+      bgTo: "to-[#101114]",
+      iconColor: "text-green-400",
+      iconBg: "bg-[#1a4a3a]",
+      iconBorder: "border-green-500/20",
+      dotColor: "bg-green-400",
+      glowColor: "shadow-[0_0_100px_rgba(74,222,128,0.2)]",
+      glowColorHex: "#4ade80",
+      platformIcon: "bg-[#00D395]",
+      platformSymbol: "A",
+      status: "Active"
+    },
+    {
+      id: 2,
+      tag: "New Quest",
+      title: "Explore the Zora Network",
+      description: "Mint, collect, and enjoy pure internet culture.",
+      buttonText: "Start Quest",
+      image: "/2.svg",
+      bgFrom: "from-blue-900/40",
+      bgVia: "via-blue-900/20",
+      bgTo: "to-[#101114]",
+      iconColor: "text-blue-400",
+      iconBg: "bg-blue-900/40",
+      iconBorder: "border-blue-500/20",
+      dotColor: "bg-blue-400",
+      glowColor: "shadow-[0_0_100px_rgba(96,165,250,0.2)]",
+      glowColorHex: "#60a5fa",
+      platformIcon: "bg-[#0066FF]",
+      platformSymbol: "Z",
+      status: "Draft"
+    },
+    {
+      id: 3,
+      tag: "Trending",
+      title: "Provide Liquidity on Uniswap",
+      description: "Earn fees by providing liquidity to top pools.",
+      buttonText: "Provide Liquidity",
+      image: "/2.svg",
+      bgFrom: "from-pink-900/40",
+      bgVia: "via-pink-900/20",
+      bgTo: "to-[#101114]",
+      iconColor: "text-pink-400",
+      iconBg: "bg-pink-900/40",
+      iconBorder: "border-pink-500/20",
+      dotColor: "bg-pink-400",
+      glowColor: "shadow-[0_0_100px_rgba(244,114,182,0.2)]",
+      glowColorHex: "#f472b6",
+      platformIcon: "bg-[#FF007A]",
+      platformSymbol: "U",
+      status: "Active"
+    },
+    {
+      id: 4,
+      tag: "Special Event",
+      title: "Moledao Web3 Bootcamp",
+      description: "Join the ultimate Web3 learning experience.",
+      buttonText: "Join Bootcamp",
+      image: "/2.svg",
+      bgFrom: "from-purple-900/40",
+      bgVia: "via-purple-900/20",
+      bgTo: "to-[#101114]",
+      iconColor: "text-purple-400",
+      iconBg: "bg-purple-900/40",
+      iconBorder: "border-purple-500/20",
+      dotColor: "bg-purple-400",
+      glowColor: "shadow-[0_0_100px_rgba(192,132,252,0.2)]",
+      glowColorHex: "#c084fc",
+      platformIcon: "bg-[#8A2BE2]",
+      platformSymbol: "M",
+      status: "Active"
+    }
+  ]);
+
   // Mock My Guild State
   const [myGuild, setMyGuild] = useState<GuildData | null>({
     id: 'g1',
     name: 'The Questing Elite',
     points: '1.5M',
+    maxMembers: 50,
     members: [
       { id: 'u1', name: '10090.eth', role: 'master', avatar: 'https://picsum.photos/seed/u1/40/40', level: 112, cubes: '36K', xp: '57K' },
       { id: 'u2', name: 'dfhcfhdfhdfhfdgfdgfd.eth', role: 'member', avatar: 'https://picsum.photos/seed/u2/40/40', level: 108, cubes: '32K', xp: '46K' },
@@ -77,6 +170,10 @@ export default function App() {
       { id: 'a1', memberId: 'u2', memberName: 'dfhcfhdfhdfhfdgfdgfd.eth', memberAvatar: 'https://picsum.photos/seed/u2/40/40', type: 'task_completed', description: 'Completed task "Abstract: Matcha"', timestamp: '2 hours ago' },
       { id: 'a2', memberId: 'u3', memberName: 'Web3Dev', memberAvatar: 'https://picsum.photos/seed/u3/40/40', type: 'checked_in', description: 'Checked in to the guild', timestamp: '5 hours ago' },
       { id: 'a3', memberId: 'u1', memberName: '10090.eth', memberAvatar: 'https://picsum.photos/seed/u1/40/40', type: 'task_completed', description: 'Completed task "Abstract: Cryptoys"', timestamp: '1 day ago' },
+    ],
+    joinRequests: [
+      { id: 'r1', userId: 'u4', userName: 'newbie.eth', userAvatar: 'https://picsum.photos/seed/u4/40/40', userLevel: 12, timestamp: '10 mins ago', status: 'pending' },
+      { id: 'r2', userId: 'u5', userName: 'pro_gamer', userAvatar: 'https://picsum.photos/seed/u5/40/40', userLevel: 89, timestamp: '1 hour ago', status: 'pending' },
     ]
   });
 
@@ -113,6 +210,37 @@ export default function App() {
     });
   };
 
+  const handleJoinRequest = (requestId: string, approved: boolean) => {
+    if (!myGuild || !myGuild.joinRequests) return;
+    
+    const request = myGuild.joinRequests.find(r => r.id === requestId);
+    if (!request) return;
+
+    let newMembers = myGuild.members;
+    if (approved && myGuild.members.length < myGuild.maxMembers) {
+      newMembers = [
+        ...myGuild.members,
+        {
+          id: request.userId,
+          name: request.userName,
+          role: 'member',
+          avatar: request.userAvatar,
+          level: request.userLevel,
+          cubes: '0',
+          xp: '0'
+        }
+      ];
+    }
+
+    setMyGuild({
+      ...myGuild,
+      members: newMembers,
+      joinRequests: myGuild.joinRequests.map(r => 
+        r.id === requestId ? { ...r, status: approved ? 'approved' : 'rejected' } : r
+      )
+    });
+  };
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -121,54 +249,61 @@ export default function App() {
     }
   }, [isDark]);
 
-  const handleScroll = (e: UIEvent<HTMLElement>) => {
-    const target = e.currentTarget;
-    const scrollTotal = target.scrollHeight - target.clientHeight;
-    if (scrollTotal > 0) {
-      setScrollProgress((target.scrollTop / scrollTotal) * 100);
-    } else {
-      setScrollProgress(0);
-    }
-  };
-
   return (
-    <div className="flex h-screen bg-white dark:bg-[#101114] text-gray-900 dark:text-white font-sans overflow-hidden transition-colors duration-300 relative">
-      <div className="relative z-10 flex h-full w-full">
-        <Sidebar activePage={activePage} setActivePage={setActivePage} />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          {/* Background layer for GlowOverlay that spans the ENTIRE right side (including behind TopBar) */}
-          <div className="absolute inset-0 pointer-events-none z-0 flex">
-            <div id="glow-portal-root" className="flex-1 relative" />
-            {/* 这里的 w-[360px] 必须和 RightPanel.tsx 中的宽度保持一致 */}
-            {isRightPanelOpen && <div className="w-[345px] shrink-0" />}
-          </div>
+    <div className="flex h-screen bg-[#FAFAFA] dark:bg-[#0A0A0A] text-gray-900 dark:text-white font-sans overflow-hidden transition-colors duration-300 relative">
+      {/* Global Background Elements */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Top-left Orange Glow */}
+        <div className="absolute -top-[100px] -left-[100px] w-[400px] h-[400px] rounded-full bg-orange-500/20 dark:bg-orange-500/10 blur-[100px] animate-pulse-slow" />
 
+        {(activePage === 'discover' || activePage === 'mytasks') && (
+          <AnimatedGridPattern
+            numSquares={30}
+            maxOpacity={0.1}
+            duration={3}
+            repeatDelay={1}
+            className={cn(
+              "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+              "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12"
+            )}
+          />
+        )}
+      </div>
+
+      {/* Background layer for GlowOverlay that spans the ENTIRE screen */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div id="glow-portal-root" className="w-full h-full relative" />
+      </div>
+
+      <div className="relative z-10 flex h-full w-full">
+        <Sidebar activePage={activePage} setActivePage={handlePageChange} />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           <TopBar 
             isRightPanelOpen={isRightPanelOpen} 
             setIsRightPanelOpen={setIsRightPanelOpen} 
-            scrollProgress={scrollProgress}
             isDark={isDark}
             setIsDark={setIsDark}
-            setActivePage={setActivePage}
+            setActivePage={handlePageChange}
             isLoggedIn={isLoggedIn}
             onLoginClick={() => setShowLoginModal(true)}
           />
           <div className="flex-1 flex overflow-hidden relative z-10">
-            <main id="main-scroll-container" className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-hide relative" onScroll={handleScroll}>
+            <main id="main-scroll-container" className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-hide relative">
               <div className="relative z-10 min-h-full flex flex-col">
-                {activePage === 'discover' && <Discover setActivePage={setActivePage} setSelectedCollectionTitle={setSelectedCollectionTitle} setSelectedQuest={setSelectedQuest} />}
-                {activePage === 'collection' && <Collection title={selectedCollectionTitle} setActivePage={setActivePage} setSelectedQuest={setSelectedQuest} />}
-                {activePage === 'task' && selectedQuest && <TaskPage quest={selectedQuest} onBack={() => setActivePage('discover')} />}
-                {activePage === 'profile' && <Profile setActivePage={setActivePage} socialVisibility={socialVisibility} personalName={personalName} />}
+                {activePage === 'discover' && <Discover setActivePage={handlePageChange} setSelectedCollectionTitle={setSelectedCollectionTitle} setSelectedQuest={setSelectedQuest} banners={banners} />}
+                {activePage === 'mytasks' && <MyTasks setActivePage={handlePageChange} setSelectedQuest={setSelectedQuest} />}
+                {activePage === 'collection' && <Collection title={selectedCollectionTitle} setActivePage={handlePageChange} setSelectedQuest={setSelectedQuest} />}
+                {activePage === 'task' && selectedQuest && <TaskPage quest={selectedQuest} onBack={() => setActivePage(previousPage)} />}
+                {activePage === 'profile' && <Profile setActivePage={handlePageChange} socialVisibility={socialVisibility} personalName={personalName} />}
                 {activePage === 'edit-profile' && <EditProfile socialVisibility={socialVisibility} setSocialVisibility={setSocialVisibility} personalName={personalName} setPersonalName={setPersonalName} />}
                 {activePage === 'leagues' && <Leagues />}
-                {activePage === 'guilds' && <Guilds setActivePage={setActivePage} myGuild={myGuild} />}
-                {activePage === 'create-guild' && <CreateGuild setActivePage={setActivePage} />}
-                {activePage === 'guild-detail' && <GuildDetail setActivePage={setActivePage} />}
-                {activePage === 'my-guild' && myGuild && <MyGuild setActivePage={setActivePage} myGuild={myGuild} currentUser={currentUser} onKick={handleKickMember} onInvite={handleInviteMember} onReview={handleTaskReview} onSubmitTask={handleTaskSubmit} />}
+                {activePage === 'guilds' && <Guilds setActivePage={handlePageChange} myGuild={myGuild} />}
+                {activePage === 'create-guild' && <CreateGuild setActivePage={handlePageChange} />}
+                {activePage === 'guild-detail' && <GuildDetail setActivePage={handlePageChange} />}
+                {activePage === 'my-guild' && myGuild && <MyGuild setActivePage={handlePageChange} myGuild={myGuild} currentUser={currentUser} onKick={handleKickMember} onInvite={handleInviteMember} onReview={handleTaskReview} onSubmitTask={handleTaskSubmit} onReviewJoinRequest={handleJoinRequest} />}
                 {activePage === 'leaderboard' && <Leaderboard />}
                 {activePage === 'rewards' && <Rewards />}
-                {activePage === 'admin' && <AdminDashboard setActivePage={setActivePage} />}
+                {activePage === 'admin' && <AdminDashboard setActivePage={handlePageChange} banners={banners} setBanners={setBanners} />}
               </div>
             </main>
             {isRightPanelOpen && <RightPanel isLoggedIn={isLoggedIn} />}

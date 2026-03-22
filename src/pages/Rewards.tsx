@@ -5,7 +5,7 @@ import { XPIcon } from '../components/XPIcon';
 
 export function Rewards() {
   return (
-    <div className="flex-1 flex flex-col w-full min-h-full bg-gray-50 dark:bg-[#101114] text-gray-900 dark:text-white overflow-y-auto scrollbar-hide transition-colors duration-300">
+    <div className="flex-1 flex flex-col w-full min-h-full bg-transparent text-gray-900 dark:text-white overflow-y-auto scrollbar-hide transition-colors duration-300">
       {/* Container */}
       <div className="px-6 md:px-12 lg:px-20 xl:px-32 py-10 max-w-[1300px] mx-auto w-full space-y-10 pb-24 relative z-10">
         

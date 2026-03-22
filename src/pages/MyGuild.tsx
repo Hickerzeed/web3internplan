@@ -12,10 +12,11 @@ interface MyGuildProps {
   onInvite: (name: string) => void;
   onReview: (taskId: string, approved: boolean, reason?: string) => void;
   onSubmitTask: (taskId: string, proof: string) => void;
+  onReviewJoinRequest?: (requestId: string, approved: boolean) => void;
 }
 
-export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite, onReview, onSubmitTask }: MyGuildProps) {
-  const [activeTab, setActiveTab] = useState<'members' | 'tasks' | 'activity'>('members');
+export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite, onReview, onSubmitTask, onReviewJoinRequest }: MyGuildProps) {
+  const [activeTab, setActiveTab] = useState<'members' | 'tasks' | 'activity' | 'join_requests'>('members');
   const [inviteName, setInviteName] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [rejectingTaskId, setRejectingTaskId] = useState<string | null>(null);
@@ -24,6 +25,7 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [memberToKick, setMemberToKick] = useState<string | null>(null);
 
   const [testRole, setTestRole] = useState<'master' | 'member'>(currentUser.role);
 
@@ -171,10 +173,6 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
                 </div>
               </div>
             </div>
-
-            <button className="w-full py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 font-semibold rounded-xl transition-colors">
-              Invite only
-            </button>
           </div>
         </div>
 
@@ -192,16 +190,33 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
               Members
             </button>
             {testRole === 'master' && (
-              <button
-                onClick={() => { setActiveTab('tasks'); setSelectedMemberId(null); }}
-                className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  activeTab === 'tasks'
-                    ? 'bg-white dark:bg-[#1a1b1e] text-gray-900 dark:text-white shadow-sm dark:shadow-none'
-                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-              >
-                Task Approvals
-              </button>
+              <>
+                <button
+                  onClick={() => { setActiveTab('tasks'); setSelectedMemberId(null); }}
+                  className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    activeTab === 'tasks'
+                      ? 'bg-white dark:bg-[#1a1b1e] text-gray-900 dark:text-white shadow-sm dark:shadow-none'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Task Approvals
+                </button>
+                <button
+                  onClick={() => { setActiveTab('join_requests'); setSelectedMemberId(null); }}
+                  className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                    activeTab === 'join_requests'
+                      ? 'bg-white dark:bg-[#1a1b1e] text-gray-900 dark:text-white shadow-sm dark:shadow-none'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Join Requests
+                  {myGuild.joinRequests && myGuild.joinRequests.filter(r => r.status === 'pending').length > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {myGuild.joinRequests.filter(r => r.status === 'pending').length}
+                    </span>
+                  )}
+                </button>
+              </>
             )}
             <button
               onClick={() => { setActiveTab('activity'); setSelectedMemberId(null); }}
@@ -218,7 +233,7 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
           <div className="flex items-center gap-2 bg-gray-100 dark:bg-[#101114] p-1.5 rounded-2xl w-fit border border-gray-200 dark:border-white/5">
             <div className="px-4 py-2 text-sm font-medium text-gray-500">Period</div>
             <div className="h-4 w-px bg-gray-300 dark:bg-white/10 mx-1" />
-            {['All time', '24h', '7d', '30d'].map((filter) => (
+            {['All time', '24h', '7d'].map((filter) => (
               <button
                 key={filter}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
@@ -247,7 +262,7 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
                 />
                 <button 
                   onClick={handleInvite}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2"
                 >
                   <UserPlus className="w-4 h-4" />
                   Invite
@@ -257,7 +272,16 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
 
             <div className="flex flex-col gap-2">
               {myGuild.members.map(member => (
-                <div key={member.id} className="flex items-center justify-between p-4 bg-white dark:bg-[#161719] border border-gray-200 dark:border-white/5 rounded-2xl group">
+                <div key={member.id} className="relative flex items-center justify-between p-4 bg-white dark:bg-[#161719] border border-gray-200 dark:border-white/5 rounded-2xl group">
+                  {testRole === 'master' && member.role !== 'master' && (
+                    <button 
+                      onClick={() => setMemberToKick(member.id)} 
+                      className="absolute -top-3 -right-3 w-8 h-8 bg-white dark:bg-[#1a1b1e] border border-red-200 dark:border-red-500/20 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10"
+                      title="Kick member"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
@@ -290,15 +314,6 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
                       </div>
                       <span className="font-bold text-gray-900 dark:text-white">{member.xp}</span>
                     </div>
-                    {testRole === 'master' && member.role !== 'master' && (
-                      <button 
-                        onClick={() => onKick(member.id)} 
-                        className="w-8 h-8 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-                        title="Kick member"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
                   </div>
                 </div>
               ))}
@@ -323,7 +338,7 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
                   <button onClick={() => setSelectedMemberId(null)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6">
                     <ChevronLeft className="w-4 h-4" /> Back to members
                   </button>
-                  <div className="flex items-center justify-start gap-6 py-8 pl-8">
+                  <div className="flex items-center justify-center gap-6 py-8">
                     <button 
                       onClick={() => {
                         setDirection(-1);
@@ -559,6 +574,57 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
           </div>
         )}
 
+        {/* Join Requests Tab */}
+        {activeTab === 'join_requests' && testRole === 'master' && (
+          <div className="space-y-4">
+            {!myGuild.joinRequests || myGuild.joinRequests.filter(r => r.status === 'pending').length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+                  <Check className="w-8 h-8 text-emerald-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Pending Requests</h3>
+                <p>There are no new join requests at the moment.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {myGuild.joinRequests.filter(r => r.status === 'pending').map(request => (
+                  <div key={request.id} className="flex items-center justify-between p-6 bg-white dark:bg-[#161719] border border-gray-200 dark:border-white/5 rounded-2xl">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img src={request.userAvatar} alt={request.userName} className="w-12 h-12 rounded-full object-cover" />
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 flex items-center justify-center">
+                          <img src="/level-frame.bd176f30.svg" alt="Level Frame" className="absolute inset-0 w-full h-full" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
+                          <span className="relative z-10 text-[10px] font-bold text-white leading-none">{request.userLevel}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900 dark:text-white text-lg">{request.userName}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Requested {request.timestamp}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => onReviewJoinRequest && onReviewJoinRequest(request.id, false)}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                      >
+                        <X className="w-4 h-4" /> Reject
+                      </button>
+                      <button 
+                        onClick={() => onReviewJoinRequest && onReviewJoinRequest(request.id, true)}
+                        disabled={myGuild.maxMembers !== undefined && myGuild.members.length >= myGuild.maxMembers}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-emerald-500/20"
+                      >
+                        <Check className="w-4 h-4" /> Approve
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Activity Tab */}
         {activeTab === 'activity' && (
           <div className="space-y-4">
@@ -584,6 +650,54 @@ export function MyGuild({ setActivePage, myGuild, currentUser, onKick, onInvite,
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <AnimatePresence>
+        {memberToKick && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMemberToKick(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white dark:bg-[#1a1b1e] rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-white/10"
+            >
+              <div className="p-6">
+                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+                  <UserMinus className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Kick Member</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Are you sure you want to kick <span className="font-bold text-gray-900 dark:text-white">{myGuild.members.find(m => m.id === memberToKick)?.name}</span> from the guild? This action cannot be undone.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setMemberToKick(null)}
+                    className="flex-1 px-4 py-2.5 rounded-xl font-medium bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      onKick(memberToKick);
+                      setMemberToKick(null);
+                    }}
+                    className="flex-1 px-4 py-2.5 rounded-xl font-medium bg-red-500 hover:bg-red-600 text-white transition-colors"
+                  >
+                    Yes, Kick
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

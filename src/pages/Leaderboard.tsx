@@ -67,7 +67,7 @@ export function Leaderboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            {['All Time', 'Last 30 Days', 'Last 7 Days', 'Last 24 Hours'].map((filter) => (
+            {['All Time', 'Last 7 Days', 'Last 24 Hours'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setTimeFilter(filter)}

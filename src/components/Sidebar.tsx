@@ -1,4 +1,4 @@
-import { Globe, Shield, Trophy, Gift, Sparkles, GraduationCap } from 'lucide-react';
+import { Globe, Shield, Trophy, Gift, Sparkles, GraduationCap, ClipboardList } from 'lucide-react';
 import { FlipWords } from './ui/flip-words';
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ const FLIP_WORDS = ["Impact", "Value", "Innovation", "Opportunities"];
 export function Sidebar({ activePage = 'discover', setActivePage }: SidebarProps) {
   const navItems = [
     { id: 'discover', icon: Globe, label: 'Discover & Learn', action: () => setActivePage?.('discover') },
+    { id: 'mytasks', icon: ClipboardList, label: 'My Tasks', action: () => setActivePage?.('mytasks') },
     { id: 'guilds', icon: Shield, label: 'Guilds', action: () => setActivePage?.('guilds') },
     { id: 'leaderboard', icon: Trophy, label: 'Leaderboard', action: () => setActivePage?.('leaderboard') },
     { id: 'rewards', icon: Gift, label: 'Rewards', action: () => setActivePage?.('rewards') },
@@ -44,7 +45,7 @@ export function Sidebar({ activePage = 'discover', setActivePage }: SidebarProps
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
                 isActive 
                   ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white font-medium' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center gap-3">
